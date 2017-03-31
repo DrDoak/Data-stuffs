@@ -18,12 +18,20 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Catalog {
 
+	public ArrayList<Integer> mIDs;
+	public ArrayList<String> mNames;
+	public ArrayList<Tuple> mTuples;
+	public ArrayList<String> mPKeys;
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
     public Catalog() {
         // some code goes here
+    	mIDs = new ArrayList<Integer>();
+    	mNames = new ArrayList<String>();
+    	mTuples = new ArrayList<Tuple>();
+    	mPKeys = new ArrayList<String>();
     }
 
     /**
@@ -37,6 +45,10 @@ public class Catalog {
      */
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
+    	mNames.add(name);
+    	mPKeys.add(pkeyField);
+    	mTuples.add(loadSchema(file.toString()));
+    	mIDs.add(0);
     }
 
     public void addTable(DbFile file, String name) {
