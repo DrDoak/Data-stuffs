@@ -14,26 +14,45 @@ import java.util.*;
  * @author Sam Madden
  */
 public class HeapFile implements DbFile {
-
-	public static class heapFileIter extends AbstractDbFileIterator{
-
+	
+	
+	//Custom class to implement DbFileIterator, and subclass of AbstractDbFileIterator
+	public static class HeapFileIter extends AbstractDbFileIterator{
+		public HeapFile mHeapFile;
+		public TransactionId mTid;
+		public Iterator<Tuple> mTupleIter;
+		public HeapFileIter(HeapFile hf, TransactionId tid){
+			mHeapFile = hf;
+			mTid = tid;
+		}
+		
 		@Override
 		public void open() throws DbException, TransactionAbortedException {
-			// TODO Auto-generated method stub
-			
+			PageId pid = Database.getBufferPool().tidToPage.get(mTid).getId();
+	    	Page currPage = Database.getBufferPool().getPage(mTid, pid, Permissions.READ_ONLY);
+	    	HeapPage currHeapPage = (HeapPage) currPage;
+			mTupleIter = currHeapPage.iterator();
 		}
 
 		@Override
 		public void rewind() throws DbException, TransactionAbortedException {
-			// TODO Auto-generated method stub
+			close();
+			open();
 			
 		}
 
 		@Override
 		protected Tuple readNext() throws DbException, TransactionAbortedException {
-			// TODO Auto-generated method stub
+			if (mTupleIter==null)
+				throw new DbException("mTupleIter is not initialized.");
+			if (mTupleIter.hasNext())
+				return mTupleIter.next();
 			return null;
 		}
+		
+		
+		
+		
 	}
     /**
      * Constructs a heap file backed by the specified file.
@@ -105,7 +124,7 @@ public class HeapFile implements DbFile {
      */
     public int numPages() {
         // some code goes here
-        return mPages.size();
+        return (int)mFile.length()/BufferPool.getPageSize();
     }
 
     // see DbFile.java for javadocs
@@ -126,10 +145,8 @@ public class HeapFile implements DbFile {
 
     // see DbFile.java for javadocs
     public DbFileIterator iterator(TransactionId tid) {
-    	
-    	PageId pid = Database.getBufferPool().tidToPage.get(tid).getId();
-    	Page curPage = Database.getBufferPool().getPage(tid, pid, Permissions.READ_ONLY);
-        return ;
+
+        return new HeapFileIter(this, tid);
     }
 
 }
