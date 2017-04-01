@@ -72,7 +72,7 @@ public class HeapPage implements Page {
 	 */
 	private int getNumTuples() {
 		// some code goes here
-		return (int) Math.floor(BufferPool.getPageSize() * 8.0 / (td.getSize() * 8.0) + 1);
+		return (int) Math.floor((BufferPool.getPageSize() * 8.0 )/ ((td.getSize() * 8.0) + 1));
 	}
 
 	/**
@@ -220,6 +220,7 @@ public class HeapPage implements Page {
 		System.out.println("Header length" + header.length);
 		
 		System.out.println(Arrays.toString(header));
+		System.out.println("header length: " + header.length);
 		System.out.println("tuple length: "+tuples.length);
 		System.out.println("td size: "+td.getSize());
 		System.out.println("zerolen: " + zerolen);
@@ -343,7 +344,14 @@ public class HeapPage implements Page {
 	 */
 	public Iterator<Tuple> iterator() {
 		// some code goes here
-		return Arrays.asList( tuples).iterator();
+		System.out.println("Iterating in HeapPage");
+		ArrayList<Tuple> newList = new ArrayList<Tuple>();
+		for (int i = 0; i <= tuples.length; i ++) {
+			if (tuples[i] == null)
+				break;
+			newList.add(tuples[i]);
+		}
+		return newList.iterator();
 	}
 
 }

@@ -90,12 +90,15 @@ public class HeapPageReadTest extends SimpleDbTestBase {
         int row = 0;
         while (it.hasNext()) {
             Tuple tup = it.next();
+            System.out.println("Tuple: " + tup);
+            System.out.println("Length: " + tup.mFields.length);
             IntField f0 = (IntField) tup.getField(0);
             IntField f1 = (IntField) tup.getField(1);
 
             assertEquals(EXAMPLE_VALUES[row][0], f0.getValue());
             assertEquals(EXAMPLE_VALUES[row][1], f1.getValue());
             row++;
+            System.out.println("HasNExt: " + it.hasNext());
         }
     }
 
