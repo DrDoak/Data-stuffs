@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,20 +19,35 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Catalog {
 
-	public ArrayList<Integer> mIDs;
-	public ArrayList<String> mNames;
-	public ArrayList<Tuple> mTuples;
-	public ArrayList<String> mPKeys;
+	public static class Table{
+
+		public Integer mID;
+		public String mName;
+		public DbFile mFile;
+		public String mPrimKey;
+		public TupleDesc mTD;
+
+        public Table (Integer id, String nam, DbFile f, String pK) {
+            this.mID = id;
+            this.mName = nam;
+            this.mFile = f;
+            this.mPrimKey = pK;
+            this.mTD = f.getTupleDesc();
+        }
+	}
+	public ArrayList<Table> mTables;
+	public Map<Integer,Table> idToTable;
+	public Map<String,Table> nameToTable;
+
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
     public Catalog() {
         // some code goes here
-    	mIDs = new ArrayList<Integer>();
-    	mNames = new ArrayList<String>();
-    	mTuples = new ArrayList<Tuple>();
-    	mPKeys = new ArrayList<String>();
+    	mTables = new ArrayList<Table>();
+    	idToTable = new HashMap<Integer,Table>();
+    	nameToTable = new HashMap<String,Table>();
     }
 
     /**
@@ -44,11 +60,18 @@ public class Catalog {
      * @param pkeyField the name of the primary key field
      */
     public void addTable(DbFile file, String name, String pkeyField) {
-        // some code goes here
-    	mNames.add(name);
-    	mPKeys.add(pkeyField);
-    	mTuples.add(loadSchema(file.toString()));
-    	mIDs.add(0);
+    	if (name == null) {
+    		System.out.println("ERROR: Name provided is Null");
+    	}
+    	else if (nameToTable.containsKey(name)) {
+    		System.out.println("ERROR: Name conflict. Name key already used. Ditching new table.");
+    	}
+    	else {
+    		Table newTable = new Table(file.getId(),name,file,pkeyField);
+    		nameToTable.put(name, newTable);
+    		idToTable.put(file.getId(), newTable);
+    	}
+        
     }
 
     public void addTable(DbFile file, String name) {
@@ -72,7 +95,10 @@ public class Catalog {
      */
     public int getTableId(String name) throws NoSuchElementException {
         // some code goes here
-        return 0;
+        if (nameToTable.containsKey(name)) {
+        	return nameToTable.get(name).mID;
+        }
+        throw new NoSuchElementException();
     }
 
     /**
@@ -83,7 +109,10 @@ public class Catalog {
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+        if (idToTable.containsKey(tableid)) {
+        	return idToTable.get(tableid).mTD;
+        }
+        throw new NoSuchElementException();
     }
 
     /**
@@ -93,28 +122,38 @@ public class Catalog {
      *     function passed to addTable
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
-        // some code goes here
-        return null;
+    	// some code goes here
+        if (idToTable.containsKey(tableid)) {
+        	return idToTable.get(tableid).mFile;
+        }
+        throw new NoSuchElementException();
     }
 
     public String getPrimaryKey(int tableid) {
-        // some code goes here
-        return null;
+    	// some code goes here
+        if (idToTable.containsKey(tableid)) {
+        	return idToTable.get(tableid).mPrimKey;
+        }
+        throw new NoSuchElementException();
     }
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        return null;
+        return idToTable.keySet().iterator();
     }
 
     public String getTableName(int id) {
-        // some code goes here
-        return null;
+    	// some code goes here
+        if (idToTable.containsKey(id)) {
+        	return idToTable.get(id).mName;
+        }
+        throw new NoSuchElementException();
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
-        // some code goes here
+    	idToTable = new HashMap<Integer,Table>();
+    	nameToTable = new HashMap<String,Table>();
     }
     
     /**

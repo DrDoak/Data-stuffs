@@ -1,8 +1,11 @@
 package simpledb;
 
 import java.io.*;
-
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import simpledb.Catalog.Table;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -25,6 +28,10 @@ public class BufferPool {
     other classes. BufferPool should use the numPages argument to the
     constructor instead. */
     public static final int DEFAULT_PAGES = 50;
+    
+	public Map<PageId,Page> pidToPage;
+	public Map<TransactionId,Page> tidToPage;
+	public int maxPages;
 
     /**
      * Creates a BufferPool that caches up to numPages pages.
@@ -32,7 +39,9 @@ public class BufferPool {
      * @param numPages maximum number of pages in this buffer pool.
      */
     public BufferPool(int numPages) {
-        // some code goes here
+    	this.maxPages = numPages;
+    	pidToPage = new HashMap<PageId,Page>();
+    	tidToPage = new HashMap<TransactionId,Page>();
     }
     
     public static int getPageSize() {
@@ -65,9 +74,19 @@ public class BufferPool {
      * @param perm the requested permissions on the page
      */
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
-        throws TransactionAbortedException, DbException {
-        // some code goes here
-        return null;
+        throws DbException, TransactionAbortedException {
+        if (pidToPage.containsKey(pid)) {
+        	return pidToPage.get(pid);
+        } else {
+        	if (pidToPage.size() >= maxPages ){
+        		throw new DbException("size has reached max");
+        	} else {
+        		Page newPage = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+        		pidToPage.put(pid, newPage);
+        		tidToPage.put(tid, newPage);
+        		return newPage;
+        	}
+        }
     }
 
     /**
