@@ -40,12 +40,11 @@ public class HeapPageId implements PageId {
      * @see BufferPool
      */
     public int hashCode() {
-
+        // some code goes here
     	int hash = 17;
     	hash = hash*31 + mTableId;
     	hash = hash*31 + mPageNo;
     	return hash;
-    	
     }
 
     /**

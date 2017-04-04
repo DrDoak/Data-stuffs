@@ -40,7 +40,11 @@ public class HeapPageId implements PageId {
      * @see BufferPool
      */
     public int hashCode() {
-
+        // some code goes here
+//    	StringBuilder sb = new StringBuilder();
+//    	sb.append(mTableId);
+//    	sb.append(mPageNo);
+//    	return (int)Integer.valueOf(sb.toString());
     	int hash = 17;
     	hash = hash*31 + mTableId;
     	hash = hash*31 + mPageNo;
