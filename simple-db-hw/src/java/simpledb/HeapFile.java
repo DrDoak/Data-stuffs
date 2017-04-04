@@ -21,6 +21,7 @@ public class HeapFile implements DbFile {
 		public HeapFile mHeapFile;
 		public TransactionId mTid;
 		public Iterator<Tuple> mTupleIter;
+		int currentPageNo;
 		public HeapFileIter(HeapFile hf, TransactionId tid){
 			mHeapFile = hf;
 			mTid = tid;
@@ -28,10 +29,20 @@ public class HeapFile implements DbFile {
 		
 		@Override
 		public void open() throws DbException, TransactionAbortedException {
-			PageId pid = Database.getBufferPool().tidToPage.get(mTid).getId();
-	    	Page currPage = Database.getBufferPool().getPage(mTid, pid, Permissions.READ_ONLY);
+			currentPageNo = 0;
+			HeapPageId firstHeapPageId = new HeapPageId(mHeapFile.getId(), currentPageNo);
+	    	Page currPage = Database.getBufferPool().getPage(mTid, firstHeapPageId, Permissions.READ_ONLY);
 	    	HeapPage currHeapPage = (HeapPage) currPage;
 			mTupleIter = currHeapPage.iterator();
+		}
+		
+		@Override
+		public void close() {
+		//	mHeapFile = null;
+			mTid = null;
+			mTupleIter = null;
+			currentPageNo = 0;
+			super.close();
 		}
 
 		@Override
@@ -43,16 +54,24 @@ public class HeapFile implements DbFile {
 
 		@Override
 		protected Tuple readNext() throws DbException, TransactionAbortedException {
-			if (mTupleIter==null)
-				throw new DbException("mTupleIter is not initialized.");
-			if (mTupleIter.hasNext())
+			if (mTupleIter==null){
+				return null;
+			}
+			if (mTupleIter.hasNext()) {
 				return mTupleIter.next();
-			return null;
-		}
-		
-		
-		
-		
+			} else {
+				currentPageNo ++;
+				if (currentPageNo < mHeapFile.numPages()) {
+					HeapPageId pageID = new HeapPageId(mHeapFile.getId(), currentPageNo);
+			    	Page currPage = Database.getBufferPool().getPage(mTid, pageID, Permissions.READ_ONLY);
+			    	HeapPage currHeapPage = (HeapPage) currPage;
+					mTupleIter = currHeapPage.iterator();
+					return readNext();
+				} else {
+					return null;
+				}
+			}
+		}		
 	}
     /**
      * Constructs a heap file backed by the specified file.
@@ -62,14 +81,16 @@ public class HeapFile implements DbFile {
      *            file.
      */
 	File mFile;
+	RandomAccessFile mRandom;
 	TupleDesc mTupleDesc;
 	Integer mID;
 	Map<PageId, HeapPage> mPages;
 	
     public HeapFile(File f, TupleDesc td) {
         // some code goes here
+    	//mRandom = new RandomAccessFile(f, "r");
     	mFile = f;
-    	mTupleDesc = td;
+    	mTupleDesc = td;    
     	mPages = new HashMap<PageId,HeapPage>();
     }
 
@@ -109,8 +130,32 @@ public class HeapFile implements DbFile {
 
     // see DbFile.java for javadocs
     public Page readPage(PageId pid) {
+    	
         // some code goes here
-        return mPages.get(pid);
+    	if (mPages.containsKey(pid)) {
+    		return mPages.get(pid);
+    	} else {
+	    	RandomAccessFile newRandom;
+			try {
+				newRandom = new RandomAccessFile(mFile,"r");
+				byte [] newAr = new byte[BufferPool.getPageSize()];
+				long startPos = pid.getPageNumber() * BufferPool.getPageSize();
+				newRandom.seek(startPos);
+		    	newRandom.read(newAr);
+		    	HeapPage newPage = new HeapPage((HeapPageId)pid,newAr);
+		    	newRandom.close();
+		    	mPages.put(pid, newPage);
+		        return newPage;
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    	
+    	return mPages.get(pid);
     }
 
     // see DbFile.java for javadocs
@@ -145,7 +190,6 @@ public class HeapFile implements DbFile {
 
     // see DbFile.java for javadocs
     public DbFileIterator iterator(TransactionId tid) {
-
         return new HeapFileIter(this, tid);
     }
 

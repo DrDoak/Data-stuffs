@@ -346,7 +346,7 @@ public class HeapPage implements Page {
 		// some code goes here
 		System.out.println("Iterating in HeapPage");
 		ArrayList<Tuple> newList = new ArrayList<Tuple>();
-		for (int i = 0; i <= tuples.length; i ++) {
+		for (int i = 0; i < tuples.length; i ++) {
 			if (tuples[i] == null)
 				break;
 			newList.add(tuples[i]);

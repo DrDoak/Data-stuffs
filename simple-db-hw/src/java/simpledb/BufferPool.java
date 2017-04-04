@@ -87,7 +87,6 @@ public class BufferPool {
         		return newPage;
         	}
         }
-        throw new TransactionAbortedException();
     }
 
     /**
