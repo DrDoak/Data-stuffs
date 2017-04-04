@@ -62,10 +62,10 @@ public class Catalog {
     public void addTable(DbFile file, String name, String pkeyField) {
     	if (name == null) {
     		System.out.println("ERROR: Name provided is Null");
-    	}
+    	}/*
     	else if (nameToTable.containsKey(name)) {
-    		System.out.println("ERROR: Name conflict. Name key already used. Ditching new table.");
-    	}
+    		System.out.println("ERROR: Name conflict. Name key already used. Replacing table.");
+    	}*/
     	else {
     		Table newTable = new Table(file.getId(),name,file,pkeyField);
     		nameToTable.put(name, newTable);
