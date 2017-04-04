@@ -214,7 +214,7 @@ public class HeapPage implements Page {
 		int zerolen = BufferPool.getPageSize() - (header.length + td.getSize() * tuples.length); // -
 																									// numSlots
 																									// *
-																								// td.getSize();
+		/*																						// td.getSize();
 		System.out.println("Page size: " + BufferPool.getPageSize());
 		
 		System.out.println("Header length" + header.length);
@@ -224,6 +224,7 @@ public class HeapPage implements Page {
 		System.out.println("tuple length: "+tuples.length);
 		System.out.println("td size: "+td.getSize());
 		System.out.println("zerolen: " + zerolen);
+		*/
 		byte[] zeroes = new byte[zerolen];
 		try {
 			dos.write(zeroes, 0, zerolen);
@@ -311,7 +312,7 @@ public class HeapPage implements Page {
 			if (!isSlotUsed(i))
 				result += 1;
 		}
-		System.out.println("numempty: " + result);
+		//System.out.println("numempty: " + result);
 		return result;
 	}
 
@@ -344,7 +345,7 @@ public class HeapPage implements Page {
 	 */
 	public Iterator<Tuple> iterator() {
 		// some code goes here
-		System.out.println("Iterating in HeapPage");
+		//System.out.println("Iterating in HeapPage");
 		ArrayList<Tuple> newList = new ArrayList<Tuple>();
 		for (int i = 0; i < tuples.length; i ++) {
 			if (tuples[i] == null)
