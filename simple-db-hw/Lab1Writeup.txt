@@ -1,0 +1,26 @@
+﻿LuoLei Zhao
+Collaborator: Haylay “Yue” Hu
+
+
+Problem Set 1 Writeup
+
+
+For this lab, we followed the procedures outlined in the assignment very closely.For any method that was marked as “insert code here” in comments, we filled out the sections with what appeared to be the most reasonable entry into the section .
+
+
+In general, there were minimal changes made to the overall structure of the code, and the hierarchy of classes remained identical to the API beforehand. The main changes that were made were implemented as encapsulated elements of individual classes and do not affect the interactions across multiple classes. 
+
+
+For most exercises,such as the Tuple, TupleDesc, Hashmap, and RecordID class, we were able to fill out all the required functions by simply adding additional fields and appropriate accessor/mutator functions. For Example, in the TupleDesc file, we used an ArrayList to keep track of the items of the tuple. This proved to be very simple to implement, as the ArrayList provided functions for easy retrieval and insertion. For the Tuple class, since we always know the size of the Tuple and certain elements of the Tuple may be initialized to null, we instead used a standard array to represent the data of the Tuple. From then on, we simply filled in the provided functions for initialization, as well as retrieval of various properties of the Tuple and TupleDesc. In some classes, such as the Bufferpool, we used a hashmap, as we wanted to map IDs to certain instances, such as Pages.
+
+
+For Exercise 2, we worked on the Catalog class. The catalogs are intended hold “tables”. However, since there is no Table structure in SimpleDB, we initialized a new class called “Table” which holds various pieces of relevant information regarding the table, such as the name, id, and tupledesc. We then used two Hashmaps to store the tables, with the keys being the id and the name. From then on we simply wrote basic accessor functions for various table attributes. For insertion, we set it so a conflicting table name replaces the old table with the same name.
+
+
+When coming up with hashcodes for instances, we tried to use pre-existing hash functions whenever possible. For Instance, the Tuple and TupleDesc class both have unique strings to represent their contents. Thus, our hash code simple uses the hashcode of the string, as it is unique for each Tuple. When no pre-existing hashcode was available, we identified the relevant fields of a unique instance and used the 17-31 hashcode method in Joshua Bloch's Effective Java to come up with a unique code.
+
+
+Most of our difficulty came from implementing the iterator for the HeapFile class. Generally, when we were required to return an iterator for a certain class, we had all of the relevant data stored in a single iterable field such as an array or arraylist. We could then return the iterator for the ArrayList. However, the heapfile iterator required us to iterate through the Tuples of multiple pages. It took us some time to discover how to read pages directly and keep track of the pages. However, we determined that the page offset can be easily found using the page number, which begins at Zero. 
+
+
+With all those sections, we were able to pass all provided tests, with no missing attributes or features. The majority of time was spent on a single day, in which we got stuck on the HeapFile class. After attending office hours, we were able to quickly finish on a second day.
