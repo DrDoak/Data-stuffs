@@ -92,10 +92,15 @@ public class TestUtil {
             return false;
 
         for (int i = 0; i < t1.getTupleDesc().numFields(); ++i) {
-            if (!(t1.getTupleDesc().getFieldType(i).equals(t2.getTupleDesc().getFieldType(i))))
+            if (!(t1.getTupleDesc().getFieldType(i).equals(t2.getTupleDesc().getFieldType(i)))) {
+            	//System.out.println("TUPLE DESC is different");
+            	//System.out.println("NUMS are different: " + t1.getField(i).toString() + " vs " + t2.getField(i).toString());
                 return false;
-            if (!(t1.getField(i).equals(t2.getField(i))))
+            }
+            if (!(t1.getField(i).equals(t2.getField(i)))) {
+            	//System.out.println("NUMS are different: " + t1.getField(i).toString() + " vs " + t2.getField(i).toString());
                 return false;
+            }
         }
 
         return true;
@@ -137,14 +142,16 @@ public class TestUtil {
 
             while (actual.hasNext()) {
                 Tuple next = actual.next();
+                System.out.println("ActualTup: " + next.toString() + " expected: " + expectedTup);
                 if (compareTuples(expectedTup, next)) {
+                	System.out.println("MATCHED");
                     matched = true;
                     break;
                 }
-                //System.out.println("ActualTup: " + next.toString() + " expected: " + expectedTup);
+               
             }
             if (!matched) {
-            	System.out.println("not matched: ");
+            	System.out.println("NOT MATCHED");
                 throw new RuntimeException("expected tuple not found: " + expectedTup);
             }
         }
