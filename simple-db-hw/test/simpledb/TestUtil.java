@@ -141,9 +141,10 @@ public class TestUtil {
                     matched = true;
                     break;
                 }
+                //System.out.println("ActualTup: " + next.toString() + " expected: " + expectedTup);
             }
-
             if (!matched) {
+            	System.out.println("not matched: ");
                 throw new RuntimeException("expected tuple not found: " + expectedTup);
             }
         }

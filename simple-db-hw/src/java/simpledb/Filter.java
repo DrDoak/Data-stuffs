@@ -18,31 +18,41 @@ public class Filter extends Operator {
      * @param child
      *            The child operator
      */
+    Predicate mPred;
+    DbIterator[] mChild;
     public Filter(Predicate p, DbIterator child) {
         // some code goes here
+    	mPred = p;
+    	mChild = new DbIterator[1];
+    	mChild[0] = child;
     }
 
     public Predicate getPredicate() {
         // some code goes here
-        return null;
+        return mPred;
     }
 
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return mChild[0].getTupleDesc();
     }
 
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+    	super.open();
+    	mChild[0].open();
     }
 
     public void close() {
         // some code goes here
+    	super.close();
+    	mChild[0].close();
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
         // some code goes here
+    	mChild[0].rewind();
     }
 
     /**
@@ -57,18 +67,25 @@ public class Filter extends Operator {
     protected Tuple fetchNext() throws NoSuchElementException,
             TransactionAbortedException, DbException {
         // some code goes here
+    	while (mChild[0].hasNext()){
+    		Tuple nTup = mChild[0].next();
+    		if (mPred.filter(nTup)){
+    			return nTup;
+    		} else {}
+    	}
         return null;
     }
 
     @Override
     public DbIterator[] getChildren() {
         // some code goes here
-        return null;
+        return mChild;
     }
 
     @Override
     public void setChildren(DbIterator[] children) {
         // some code goes here
+    	mChild = children;
     }
 
 }
