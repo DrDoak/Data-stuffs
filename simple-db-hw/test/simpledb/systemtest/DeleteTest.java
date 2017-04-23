@@ -21,13 +21,17 @@ public class DeleteTest extends FilterBase {
         deleteOperator.open();
         boolean hasResult = false;
         int result = -1;
+        //System.out.println("Starting to delete: " + filter.toString());
         while (deleteOperator.hasNext()) {
             Tuple t = deleteOperator.next();
+            //System.out.println("HasResult before: " + hasResult);
             assertFalse(hasResult);
             hasResult = true;
             assertEquals(SystemTestUtil.SINGLE_INT_DESCRIPTOR, t.getTupleDesc());
             result = ((IntField) t.getField(0)).getValue();
+            //System.out.println("HasResult after : " + hasResult);
         }
+        //System.out.println("HasResult final : " + hasResult);
         assertTrue(hasResult);
 
         deleteOperator.close();

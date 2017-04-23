@@ -48,6 +48,7 @@ public class Join extends Operator {
     public String getJoinField1Name() {
         // some code goes here
         return mChild[0].toString();
+        //return "";
     }
 
     /**
@@ -58,6 +59,7 @@ public class Join extends Operator {
     public String getJoinField2Name() {
         // some code goes here
         return mChild[1].toString();
+        //return "";
     }
 
     /**
