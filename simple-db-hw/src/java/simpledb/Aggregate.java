@@ -37,6 +37,7 @@ public class Aggregate extends Operator {
     Aggregator.Op mOp;
     Type mType;
     Aggregator mAgg;
+    DbIterator mIter;
     public Aggregate(DbIterator child, int afield, int gfield, Aggregator.Op aop) {
 	// some code goes here
     	children = new DbIterator[1];
@@ -44,12 +45,19 @@ public class Aggregate extends Operator {
     	mAField = afield;
     	mGField = gfield;
     	mOp = aop;
-    	mType = child.getTupleDesc().getFieldType(mGField);
-    	if (mType == Type.INT_TYPE) {
-    		mAgg = new IntegerAggregator(mGField,mType ,mAField,aop);
+    	mType = child.getTupleDesc().getFieldType(mAField);
+    	Type gType;
+    	if (mGField == simpledb.Aggregator.NO_GROUPING) {
+    		gType = null;
     	} else {
-    		mAgg = new StringAggregator(mGField,mType ,mAField,aop);
+    		gType = child.getTupleDesc().getFieldType(mGField);
     	}
+    	if (mType == Type.INT_TYPE) {
+    		mAgg = new IntegerAggregator(mGField,gType ,mAField,aop);
+    	} else {
+    		mAgg = new StringAggregator(mGField,gType ,mAField,aop);
+    	}
+    	mIter = mAgg.iterator();
     }
 
     /**
@@ -61,7 +69,7 @@ public class Aggregate extends Operator {
 	// some code goes here
     	return mGField;
     }
-
+    
     /**
      * @return If this aggregate is accompanied by a group by, return the name
      *         of the groupby field in the <b>OUTPUT</b> tuples. If not, return
@@ -98,8 +106,8 @@ public class Aggregate extends Operator {
      * @return return the aggregate operator
      * */
     public Aggregator.Op aggregateOp() {
-	// some code goes here
-	return mOp;
+    	// some code goes here
+    	return mOp;
     }
 
     public static String nameOfAggregatorOp(Aggregator.Op aop) {
@@ -110,7 +118,15 @@ public class Aggregate extends Operator {
 	    TransactionAbortedException {
 	// some code goes here
     	super.open();
-    	children[0].open();
+    	
+    	DbIterator ch = children[0];
+    	ch.rewind();
+    	ch.open();
+    	while (ch.hasNext()) {
+    		mAgg.mergeTupleIntoGroup(ch.next());
+    	}
+    	mIter = mAgg.iterator();
+    	mIter.open();
     }
 
     /**
@@ -122,12 +138,16 @@ public class Aggregate extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
     	// some code goes here
+    	// System.out.println("Fetching next: Has next: " + mIter.hasNext());
+    	while (mIter.hasNext()) {
+    		return mIter.next();
+    	}
     	return null;
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
 	// some code goes here
-    	children[0].rewind();
+    	mIter.rewind();
     }
 
     /**
@@ -143,13 +163,13 @@ public class Aggregate extends Operator {
      */
     public TupleDesc getTupleDesc() {
 	// some code goes here
-    	return children[0].getTupleDesc();
+    	return mIter.getTupleDesc();
     }
 
     public void close() {
 	// some code goes here
     	super.close();
-    	children[0].close();
+    	mIter.close();
     }
 
     @Override
@@ -162,6 +182,13 @@ public class Aggregate extends Operator {
     public void setChildren(DbIterator[] children) {
 	// some code goes here
     	this.children = children;
+    	mType = children[0].getTupleDesc().getFieldType(mGField);
+    	if (mType == Type.INT_TYPE) {
+    		mAgg = new IntegerAggregator(mGField,mType ,mAField,mOp);
+    	} else {
+    		mAgg = new StringAggregator(mGField,mType ,mAField,mOp);
+    	}
+    	mIter = mAgg.iterator();
     }
     
 }

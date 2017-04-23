@@ -100,7 +100,7 @@ public class IntegerAggregator implements Aggregator {
     	if (mGBField != NO_GROUPING) { 
 	    	Type[] typeList = new Type[2];
 	    	String[] fieldAr = new String[2];
-	    	typeList[0] = Type.INT_TYPE;
+	    	typeList[0] = mGBFieldType;
 	    	typeList[1] = Type.INT_TYPE;
 	    	fieldAr[0] = "groupVal";
 	    	fieldAr[1] = "AggregateVal";

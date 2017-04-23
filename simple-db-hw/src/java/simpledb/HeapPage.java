@@ -21,6 +21,7 @@ public class HeapPage implements Page {
 
 	byte[] oldData;
 	private final Byte oldDataLock = new Byte((byte) 0);
+	boolean isDirty;
 
 	/**
 	 * Create a HeapPage from a set of bytes of data read from disk. The format
@@ -45,6 +46,7 @@ public class HeapPage implements Page {
 		this.pid = id;
 		this.td = Database.getCatalog().getTupleDesc(id.getTableId());
 		this.numSlots = getNumTuples();
+		isDirty = false;
 		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
 
 		// allocate and read the header slots of this page
@@ -267,6 +269,17 @@ public class HeapPage implements Page {
 	public void deleteTuple(Tuple t) throws DbException {
 		// some code goes here
 		// not necessary for lab1
+		if (t.getRecordId().getPageId().equals(pid) && isSlotUsed(t.getRecordId().mTupleID)) {
+			this.markSlotUsed(t.getRecordId().mTupleID, false);
+			RecordId rid = t.getRecordId();
+			for (int i = 0; i < tuples.length; i ++ ) {
+				if (tuples[i].getRecordId().equals(rid)) {
+					tuples[i] = null;
+				}
+			}
+		} else {
+			throw new DbException("Attempting to delete Tuple not on page");
+		}
 	}
 
 	/**
@@ -336,6 +349,12 @@ public class HeapPage implements Page {
 	private void markSlotUsed(int i, boolean value) {
 		// some code goes here
 		// not necessary for lab1
+		Byte b = header[i];
+		if (value) {
+			b = (byte)(b | (1 << (i % 8))&1);
+		} else {
+			b = (byte)(b & ~(1 << (i % 8))&1);
+		}
 	}
 
 	/**

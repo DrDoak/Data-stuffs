@@ -110,20 +110,23 @@ public class SystemTestUtil {
     public static void matchTuples(DbIterator iterator, List<ArrayList<Integer>> tuples)
             throws DbException, TransactionAbortedException, IOException {
         ArrayList<ArrayList<Integer>> copy = new ArrayList<ArrayList<Integer>>(tuples);
-
+        //System.out.println("MAtching tuples");
         if (Debug.isEnabled()) {
             Debug.log("Expected tuples:");
             for (ArrayList<Integer> t : copy) {
                 Debug.log("\t" + Utility.listToString(t));
             }
         }
-
+        
         iterator.open();
+        //System.out.println("has Next?" + iterator.hasNext());
         while (iterator.hasNext()) {
+        	//System.out.println("HAS NEXT?");
             Tuple t = iterator.next();
             //System.out.println(t.toString());
             ArrayList<Integer> list = tupleToList(t);
             boolean isExpected = copy.remove(list);
+            //System.out.println("scanned tuple: "+ t.toString()+ " isExpected: " + isExpected);
             Debug.log("scanned tuple: %s (%s)", t, isExpected ? "expected" : "not expected");
             if (!isExpected) {
                 Assert.fail("expected tuples does not contain: " + t);

@@ -142,16 +142,15 @@ public class TestUtil {
 
             while (actual.hasNext()) {
                 Tuple next = actual.next();
-                System.out.println("ActualTup: " + next.toString() + " expected: " + expectedTup);
+                //System.out.println("ActualTup: " + next.toString() + " expected: " + expectedTup);
                 if (compareTuples(expectedTup, next)) {
-                	System.out.println("MATCHED");
+                	//System.out.println("MATCHED");
                     matched = true;
                     break;
                 }
-               
             }
             if (!matched) {
-            	System.out.println("NOT MATCHED");
+            	//System.out.println("NOT MATCHED");
                 throw new RuntimeException("expected tuple not found: " + expectedTup);
             }
         }
