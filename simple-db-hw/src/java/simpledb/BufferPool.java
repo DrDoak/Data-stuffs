@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 import simpledb.Catalog.Table;
 
@@ -151,7 +152,13 @@ public class BufferPool {
     public void insertTuple(TransactionId tid, int tableId, Tuple t)
         throws DbException, IOException, TransactionAbortedException {
         // some code goes here
-        // not necessary for lab1
+        HeapFile mFile = (HeapFile)Database.getCatalog().getDatabaseFile(tableId);
+        ArrayList<Page> modifiledPages = mFile.insertTuple(tid, t);
+        for (Page mp: modifiledPages) {
+            mp.markDirty(true, tid);
+            pidToPage.put(mp.getId(), mp);
+            tidToPage.put(tid, mp);
+        }
     }
 
     /**
@@ -169,9 +176,15 @@ public class BufferPool {
      */
     public  void deleteTuple(TransactionId tid, Tuple t)
         throws DbException, IOException, TransactionAbortedException {
-        // some code goes here
-        // not necessary for lab1
-    }
+            int mTableId = t.getRecordId().getPageId().getTableId();
+            HeapFile mFile = (HeapFile)Database.getCatalog().getDatabaseFile(mTableId);
+            ArrayList<Page> modifiledPages = mFile.deleteTuple(tid,t);
+            for (Page mp: modifiledPages) {
+                mp.markDirty(true, tid);
+                pidToPage.put(mp.getId(), mp);
+                tidToPage.put(tid, mp);
+            }
+        }
 
     /**
      * Flush all dirty pages to disk.

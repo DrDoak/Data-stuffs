@@ -21,26 +21,37 @@ public class Insert extends Operator {
      *             if TupleDesc of child differs from table into which we are to
      *             insert.
      */
+    
+    TransactionId mTrans;
+    DbIterator mChild;
+    int mTableId;
+    
     public Insert(TransactionId t,DbIterator child, int tableId)
             throws DbException {
         // some code goes here
+    	mTrans = t;
+    	mChild = child;
+    	mTableId = tableId;
     }
 
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return Database.getCatalog().getDatabaseFile(mTableId).getTupleDesc();
     }
 
     public void open() throws DbException, TransactionAbortedException {
         // some code goes here
+    	mChild.open();
     }
 
     public void close() {
         // some code goes here
+    	mChild.close();
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
         // some code goes here
+    	mChild.rewind();
     }
 
     /**
