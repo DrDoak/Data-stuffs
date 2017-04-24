@@ -76,21 +76,22 @@ public class BufferPool {
      */
     public Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws DbException, TransactionAbortedException {
-//    	if (testp != null){
-//    		return testp;
-//    	}
+    	//if (testp != null){
+    	//	return testp;
+    	//}
         if (pidToPage.containsKey(pid)) {
         	return pidToPage.get(pid);
         } else {
-        	//if (pidToPage.size() >= maxPages ){
-        	//	evictPage();
-        	//}
+        	if (pidToPage.size() >= maxPages ){
+        		evictPage();
+        	}
         	
         	
         	Page newPage = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
-        	//newPage.markDirty(true, tid);
+        	
+//        	newPage.markDirty(true, tid);
         	//testp = newPage;
-        	//pidToPage.put(pid, newPage);
+        	pidToPage.put(pid, newPage);
         	//tidToPage.put(tid, newPage);
         	
         	return newPage;        	
@@ -220,9 +221,14 @@ public class BufferPool {
     public synchronized void discardPage(PageId pid) {
         // some code goes here
         // not necessary for lab1
-    	Page p = pidToPage.get(pid);
-    	pidToPage.remove(pid);
     	
+//    	Page p = pidToPage.get(pid);
+    	HeapFile hf = (HeapFile)Database.getCatalog().getDatabaseFile(pid.getTableId());
+//    	Page page = pidToPage.get(pid);
+//    	hf.writePage(page);
+    	hf.mPages.remove(pid);
+    	pidToPage.remove(pid);
+//    	pidToPage = new HashMap<PageId,Page>();
     }
 
     /**
@@ -235,6 +241,7 @@ public class BufferPool {
     	HeapFile hf = (HeapFile)Database.getCatalog().getDatabaseFile(pid.getTableId());
     	Page page = pidToPage.get(pid);
     	hf.writePage(page);
+//    	hf.mPages.remove(pid);
     	page.markDirty(false, null);
     	//Database.getCatalog().getDatabaseFile(pid.getTableId())
     }
