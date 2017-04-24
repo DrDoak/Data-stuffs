@@ -270,13 +270,13 @@ public class BufferPool {
     		}
     	}
     	//for (int i = 0; i < 13; i ++) {
-	    	System.out.println("total pages: " + pidToPage.keySet().size());
-	    	System.out.println("Number of evictable pages: " + l.size());
+	    	//System.out.println("total pages: " + pidToPage.keySet().size());
+	    	//System.out.println("Number of evictable pages: " + l.size());
 	    	if (l.size() > 0) {
 		    	int n = rand.nextInt(l.size());
 		    	pid = l.get(n);
 		    	l.remove(pid);
-		    	System.out.println("evicting page: " + pid.toString());
+		    	//System.out.println("evicting page: " + pid.toString());
 //		    	try {
 //					flushPage(pid);
 //				} catch (IOException e) {
@@ -285,7 +285,7 @@ public class BufferPool {
 //				}
 		    	discardPage(pid);
 	    	} else {
-	    		System.out.println("dirty list is empty");
+	    		//System.out.println("dirty list is empty");
 	    		//break;
 	    	}
     	//}
