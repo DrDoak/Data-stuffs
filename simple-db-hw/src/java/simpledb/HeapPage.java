@@ -331,8 +331,11 @@ public class HeapPage implements Page {
 	 */
 	public TransactionId isDirty() {
 		// some code goes here
-		
-		return mTid;
+		if (isDirty) {
+			return mTid;
+		} else {
+			return null;
+		}
 	}
 
 	/**

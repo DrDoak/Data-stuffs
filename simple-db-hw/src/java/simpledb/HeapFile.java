@@ -67,6 +67,7 @@ public class HeapFile implements DbFile {
 			    	HeapPage currHeapPage = (HeapPage) currPage;
 					mTupleIter = currHeapPage.iterator();
 					return readNext();
+					//return null;
 				} else {
 					return null;
 				}

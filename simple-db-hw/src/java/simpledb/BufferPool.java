@@ -31,9 +31,9 @@ public class BufferPool {
     public static final int DEFAULT_PAGES = 50;
     
 	public Map<PageId,Page> pidToPage;
-	public Map<TransactionId,Page> tidToPage;
+	//public Map<TransactionId,Page> tidToPage;
 	public int maxPages;
-
+	Page testp;
     /**
      * Creates a BufferPool that caches up to numPages pages.
      *
@@ -42,7 +42,7 @@ public class BufferPool {
     public BufferPool(int numPages) {
     	this.maxPages = numPages;
     	pidToPage = new HashMap<PageId,Page>();
-    	tidToPage = new HashMap<TransactionId,Page>();
+    	//tidToPage = new HashMap<TransactionId,Page>();
     }
     
     public static int getPageSize() {
@@ -76,17 +76,24 @@ public class BufferPool {
      */
     public Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws DbException, TransactionAbortedException {
+//    	if (testp != null){
+//    		return testp;
+//    	}
         if (pidToPage.containsKey(pid)) {
         	return pidToPage.get(pid);
         } else {
-        	if (pidToPage.size() >= maxPages ){
-        		throw new DbException("size has reached max");
-        	} else {
-        		Page newPage = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
-        		pidToPage.put(pid, newPage);
-        		tidToPage.put(tid, newPage);
-        		return newPage;
-        	}
+        	//if (pidToPage.size() >= maxPages ){
+        	//	evictPage();
+        	//}
+        	
+        	
+        	Page newPage = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+        	//newPage.markDirty(true, tid);
+        	//testp = newPage;
+        	//pidToPage.put(pid, newPage);
+        	//tidToPage.put(tid, newPage);
+        	
+        	return newPage;        	
         }
     }
 
@@ -157,7 +164,7 @@ public class BufferPool {
         for (Page mp: modifiledPages) {
             mp.markDirty(true, tid);
             pidToPage.put(mp.getId(), mp);
-            tidToPage.put(tid, mp);
+            //tidToPage.put(tid, mp);
         }
     }
 
@@ -182,7 +189,7 @@ public class BufferPool {
             for (Page mp: modifiledPages) {
                 mp.markDirty(true, tid);
                 pidToPage.put(mp.getId(), mp);
-                tidToPage.put(tid, mp);
+                //tidToPage.put(tid, mp);
             }
         }
 
@@ -194,7 +201,12 @@ public class BufferPool {
     public synchronized void flushAllPages() throws IOException {
         // some code goes here
         // not necessary for lab1
-
+    	for (PageId pid : pidToPage.keySet()) {
+    		if (pidToPage.get(pid).isDirty() != null){
+    			flushPage(pid);
+    			//discardPage(pid);
+    		}
+    	}
     }
 
     /** Remove the specific page id from the buffer pool.
@@ -208,6 +220,9 @@ public class BufferPool {
     public synchronized void discardPage(PageId pid) {
         // some code goes here
         // not necessary for lab1
+    	Page p = pidToPage.get(pid);
+    	pidToPage.remove(pid);
+    	
     }
 
     /**
@@ -217,6 +232,11 @@ public class BufferPool {
     private synchronized  void flushPage(PageId pid) throws IOException {
         // some code goes here
         // not necessary for lab1
+    	HeapFile hf = (HeapFile)Database.getCatalog().getDatabaseFile(pid.getTableId());
+    	Page page = pidToPage.get(pid);
+    	hf.writePage(page);
+    	page.markDirty(false, null);
+    	//Database.getCatalog().getDatabaseFile(pid.getTableId())
     }
 
     /** Write all pages of the specified transaction to disk.
@@ -233,6 +253,35 @@ public class BufferPool {
     private synchronized  void evictPage() throws DbException {
         // some code goes here
         // not necessary for lab1
+    	//System.out.print("Preparing to evict page!");
+    	PageId pid;
+    	Random rand = new Random();
+    	List<PageId> l = new ArrayList<PageId>();
+    	for (PageId p : pidToPage.keySet()) {
+    		if (pidToPage.get(p).isDirty() == null){
+    			l.add(p);
+    		}
+    	}
+    	//for (int i = 0; i < 13; i ++) {
+	    	System.out.println("total pages: " + pidToPage.keySet().size());
+	    	System.out.println("Number of evictable pages: " + l.size());
+	    	if (l.size() > 0) {
+		    	int n = rand.nextInt(l.size());
+		    	pid = l.get(n);
+		    	l.remove(pid);
+		    	System.out.println("evicting page: " + pid.toString());
+//		    	try {
+//					flushPage(pid);
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+		    	discardPage(pid);
+	    	} else {
+	    		System.out.println("dirty list is empty");
+	    		//break;
+	    	}
+    	//}
     }
 
 }
