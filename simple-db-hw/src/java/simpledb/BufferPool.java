@@ -277,12 +277,12 @@ public class BufferPool {
 		    	pid = l.get(n);
 		    	l.remove(pid);
 		    	//System.out.println("evicting page: " + pid.toString());
-//		    	try {
-//					flushPage(pid);
-//				} catch (IOException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
+		    	try {
+					flushPage(pid);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 		    	discardPage(pid);
 	    	} else {
 	    		//System.out.println("dirty list is empty");

@@ -1,0 +1,26 @@
+﻿Writeup: LuoLei Zhao
+Collaborator: Haylay “Yue” Hu
+
+
+Problem Set 2 Writeup
+
+
+For this lab, we followed the procedures outlined in the assignment very closely. For any method that was marked as “insert code here” in comments, we filled out the sections with what appeared to be the most reasonable entry into the section .
+
+
+In general, there were minimal changes made to the overall structure of the code, and the hierarchy of classes remained identical to the API beforehand. The main changes that were made were implemented as encapsulated elements of individual classes and do not affect the interactions across multiple classes. 
+
+
+Join:
+
+
+ For the Join Predicate, when the operator joins two predicates, we created decided to proceed with a straightforward approach using a nested loop. This loop allowed for each combination of the two children to be evaluated. We then determined whether the combinations matched the predicate, and if so, we returned the value. Upon returning a value, we set a flag to true so that the next time the hasNext value is called, the outer loop does not get skipped.
+
+
+Eviction policy:
+
+
+We approached eviction in a fairly straightforward manner. We looked up some eviction policies online and found a few that appeared easy to implement. Of the ones we found ,such as first in first out, least recently used (LRU), and random, we looked up some general trends regarding performance. It turned out that random usually had better performance than first in, first out, and occasionally could perform better than LRU. We decided to implement the Random policy, which simply removes a random page among the cached pages of the Bufferpool.
+
+
+We were able to pass all provided tests with no missing attributes or features. While we spent a great deal of time debugging for each step, there was no particular section that stood out as exceptionally more difficult than the other sections.  In total, we spent about 7-8 hours on the assignment.
