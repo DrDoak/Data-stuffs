@@ -299,9 +299,9 @@ public class HeapPage implements Page {
 		if (getNumEmptySlots() > 0 && t.getTupleDesc().equals(td)) {
 			for (int i=0; i<tuples.length; i++){
 				if (!isSlotUsed(i)) {
-					System.out.println("getNumEmptySlots() is "+ getNumEmptySlots());
+					//System.out.println("getNumEmptySlots() is "+ getNumEmptySlots());
 					markSlotUsed(i, true);
-					System.out.println("getNumEmptySlots() after mark used is "+ getNumEmptySlots());
+					//System.out.println("getNumEmptySlots() after mark used is "+ getNumEmptySlots());
 					t.setRecordId(new RecordId(getId(), i));
 					tuples[i] = t;
 					break;

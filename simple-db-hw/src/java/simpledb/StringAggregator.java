@@ -33,7 +33,7 @@ public class StringAggregator implements Aggregator {
     	mGBFieldType = gbfieldtype;
     	mAField = afield;
     	mOp = what;
-    	System.out.println("StringOpKind: " + mOp);
+    	//System.out.println("StringOpKind: " + mOp);
     	if (mOp != Op.COUNT) {
     		throw new IllegalArgumentException();
     	}
