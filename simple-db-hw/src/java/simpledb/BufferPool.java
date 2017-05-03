@@ -241,9 +241,7 @@ public class BufferPool {
     	HeapFile hf = (HeapFile)Database.getCatalog().getDatabaseFile(pid.getTableId());
     	Page page = pidToPage.get(pid);
     	hf.writePage(page);
-//    	hf.mPages.remove(pid);
     	page.markDirty(false, null);
-    	//Database.getCatalog().getDatabaseFile(pid.getTableId())
     }
 
     /** Write all pages of the specified transaction to disk.
@@ -260,7 +258,6 @@ public class BufferPool {
     private synchronized  void evictPage() throws DbException {
         // some code goes here
         // not necessary for lab1
-    	//System.out.print("Preparing to evict page!");
     	PageId pid;
     	Random rand = new Random();
     	List<PageId> l = new ArrayList<PageId>();
@@ -269,9 +266,6 @@ public class BufferPool {
     			l.add(p);
     		}
     	}
-    	//for (int i = 0; i < 13; i ++) {
-	    	//System.out.println("total pages: " + pidToPage.keySet().size());
-	    	//System.out.println("Number of evictable pages: " + l.size());
 	    	if (l.size() > 0) {
 		    	int n = rand.nextInt(l.size());
 		    	pid = l.get(n);
@@ -284,11 +278,8 @@ public class BufferPool {
 					e.printStackTrace();
 				}
 		    	discardPage(pid);
-	    	} else {
-	    		//System.out.println("dirty list is empty");
-	    		//break;
 	    	}
-    	//}
+
     }
 
 }

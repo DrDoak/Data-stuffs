@@ -195,10 +195,10 @@ public class HeapFile implements DbFile {
             throws DbException, IOException, TransactionAbortedException {
     	 // some code goes here
     	ArrayList<Page> modified = new ArrayList<Page>();
-    	System.out.println("numPages is "+ numPages());
+    	//System.out.println("numPages is "+ numPages());
     	for (int i=0; i<numPages(); i++) {
     		HeapPageId pid = new HeapPageId(getId(), i);
-    		System.out.println("HeapPageID is "+ pid);
+    		//System.out.println("HeapPageID is "+ pid);
     		HeapPage p = (HeapPage)Database.getBufferPool().getPage(tid, pid, Permissions.READ_WRITE);
     		if (p.getNumEmptySlots()>0){
     			p.insertTuple(t);
