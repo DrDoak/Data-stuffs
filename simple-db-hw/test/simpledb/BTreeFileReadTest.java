@@ -118,6 +118,7 @@ public class BTreeFileReadTest extends SimpleDbTestBase {
 		assertEquals(3, twoLeafPageFile.numPages());
 
 		DbFileIterator it = twoLeafPageFile.iterator(tid);
+		System.out.println("Iterator: " + it.toString());
 		it.open();
 		assertTrue(it.hasNext());
 		it.close();

@@ -199,13 +199,18 @@ public class BTreeFile implements DbFile {
 			return (BTreeLeafPage)getPage(tid, dirtypages, pid, perm);
 		} else
 		{
+			
 			BTreeInternalPage p = (BTreeInternalPage)getPage(tid, dirtypages, pid, perm);
-			Iterator<BTreeEntry> it = p.iterator();
+			Iterator<BTreeEntry> itato = p.iterator();
 			BTreeEntry ent = null;
-			while (it.hasNext()) {
-				ent = it.next();
+			if (f == null){
+				ent = itato.next();
+				return findLeafPage(tid,dirtypages,ent.getLeftChild(),perm,f);
+			}
+			while (itato.hasNext()) {
+				ent = itato.next();
 				Field kf = ent.getKey();
-				if (f.compare(Op.GREATER_THAN_OR_EQ, kf)) {
+				if (f.compare(Op.LESS_THAN_OR_EQ, kf)) {
 					return findLeafPage(tid,dirtypages,ent.getLeftChild(),perm,f);
 				}
 			}
@@ -266,8 +271,43 @@ public class BTreeFile implements DbFile {
 		// the new entry.  getParentWithEmtpySlots() will be useful here.  Don't forget to update
 		// the sibling pointers of all the affected leaf pages.  Return the page into which a 
 		// tuple with the given key field should be inserted.
-        return null;
 		
+		BTreeLeafPage newRightLeaf = (BTreeLeafPage)getEmptyPage(tid, dirtypages,BTreePageId.LEAF);
+		//BTreeLeafPage leftLeaf = (BTreeLeafPage)getEmptyPage(tid, dirtypages,BTreePageId.LEAF);
+		int numTups = page.getNumTuples() + 1;
+		//System.out.println("NumTups: " + numTups);
+		Iterator<Tuple> iter = page.iterator();
+		int curInd = 0;
+		BTreeLeafPage goalPage = null;
+		boolean foundBreakPoint = false;
+		Tuple middleKey = null;
+		while (iter.hasNext()) {
+			Tuple ent = iter.next();
+			curInd ++;
+			//System.out.println("page: " + page.pid.getPageNumber() + " tup: " + ent.getRecordId().getPageId().getPageNumber());
+			if (curInd >= (numTups/2)) {
+				if (!foundBreakPoint ){
+					if (field.compare(Op.GREATER_THAN_OR_EQ,ent.getField(keyField))) {
+						goalPage = newRightLeaf;
+					} else {
+						goalPage = page;
+					}
+					newRightLeaf.setRightSiblingId(page.getRightSiblingId());
+					page.setRightSiblingId(goalPage.getId());
+					newRightLeaf.setLeftSiblingId(page.getId());
+					foundBreakPoint = true;
+					middleKey = ent;
+				}
+				page.deleteTuple(ent);
+				newRightLeaf.insertTuple(ent);
+				//System.out.println("Deleting entry: " + curInd);
+			}
+		}
+		BTreeInternalPage parentPage = getParentWithEmptySlots(tid, dirtypages, page.getParentId(), middleKey.getField(keyField));
+		//dirtypages.put(page.getId(), page);
+		//dirtypages.put(newRightLeaf.getId(),page);
+		//updateParentPointers(tid,dirtypages,(BTreeInternalPage)getPage(tid,dirtypages,page.getParentId(),Permissions.READ_WRITE));
+        return goalPage;		
 	}
 	
 	/**
@@ -304,7 +344,40 @@ public class BTreeFile implements DbFile {
 		// the parent pointers of all the children moving to the new page.  updateParentPointers()
 		// will be useful here.  Return the page into which an entry with the given key field
 		// should be inserted.
-		return null;
+		
+		BTreeInternalPage newRight = (BTreeInternalPage)getEmptyPage(tid, dirtypages,BTreePageId.INTERNAL);
+		//BTreeLeafPage leftLeaf = (BTreeLeafPage)getEmptyPage(tid, dirtypages,BTreePageId.LEAF);
+		int numTups = page.getNumEntries() + 1;
+		Iterator<BTreeEntry> iter = page.iterator();
+		int curInd = 0;
+		BTreeInternalPage goalPage = null;
+		boolean foundBreakPoint = false;
+		BTreeEntry middleNode = null;
+		while (iter.hasNext()) {
+			BTreeEntry ent = iter.next();
+			curInd ++;
+			if (curInd > (numTups/2)) {
+				if (!foundBreakPoint ){
+					if (field.compare(Op.GREATER_THAN_OR_EQ,ent.getKey())) {
+						goalPage = newRight;
+					} else {
+						goalPage = page;
+					}
+					middleNode = ent;
+					foundBreakPoint = true;
+				}
+				newRight.insertEntry(ent);
+				//page.deleteKeyAndLeftChild(ent);
+			}
+		}
+		//dirtypages.put(page.getId(), page);
+		//dirtypages.put(newRightLeaf.getId(),page);
+		BTreeInternalPage parentPage = getParentWithEmptySlots(tid, dirtypages, page.getParentId(), middleNode.getKey());
+		parentPage.insertEntry(middleNode);
+		
+		updateParentPointers(tid,dirtypages,page);
+		updateParentPointers(tid,dirtypages,newRight);
+        return goalPage;		
 	}
 	
 	/**
