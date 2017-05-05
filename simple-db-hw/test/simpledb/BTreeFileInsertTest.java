@@ -69,6 +69,7 @@ public class BTreeFileInsertTest extends SimpleDbTestBase {
 		}
 		else { // page.getRightSiblingId() != null
 			otherPage = (BTreeLeafPage) dirtypages.get(page.getRightSiblingId());
+			//System.out.println("field is "+ field + " rightSibiling first field is "+ otherPage.iterator().next().getField(keyField));
 			assertTrue(field.compare(Op.LESS_THAN_OR_EQ, 
 					otherPage.iterator().next().getField(keyField)));
 		}
@@ -77,11 +78,12 @@ public class BTreeFileInsertTest extends SimpleDbTestBase {
 		assertEquals(BTreeUtility.getNumTuplesPerPage(2), totalTuples);
 		assertTrue(BTreeUtility.getNumTuplesPerPage(2)/2 == page.getNumTuples() || 
 				BTreeUtility.getNumTuplesPerPage(2)/2 + 1 == page.getNumTuples());
+		//System.out.println("totalTuples "+BTreeUtility.getNumTuplesPerPage(2)+" otherPage Tuples "+ otherPage.getNumTuples());
 		assertTrue(BTreeUtility.getNumTuplesPerPage(2)/2 == otherPage.getNumTuples() || 
 				BTreeUtility.getNumTuplesPerPage(2)/2 + 1 == otherPage.getNumTuples());
 		assertEquals(1, parent.getNumEntries());
 	}
-
+	
 	@Test
 	public void testSplitInternalPages() throws Exception {
 		File emptyFile = File.createTempFile("empty", ".dat");
@@ -115,16 +117,28 @@ public class BTreeFileInsertTest extends SimpleDbTestBase {
 		BTreeEntry parentEntry = parent.iterator().next();
 		if(parentEntry.getLeftChild().equals(page.getId())) {
 			otherPage = (BTreeInternalPage) dirtypages.get(parentEntry.getRightChild());
+			System.out.println("Test Right: " + otherPage.getId().toString());
+			System.out.println("Test Right pre-dirty: " + parentEntry.getRightChild().toString());
+			BTreeEntry ent = otherPage.iterator().next();
+			System.out.println(field.toString() + " <= " + ent.getKey().toString());
 			assertTrue(field.compare(Op.LESS_THAN_OR_EQ, 
-					otherPage.iterator().next().getKey()));
+					ent.getKey()));
+					//otherPage.iterator().next().getKey()));
 		}
 		else { // parentEntry.getRightChild().equals(page.getId())
+			System.out.println("Parent: " + parent.getId().toString() + " entry " + parentEntry.toString());
+			System.out.println("test Left Pre-dirty: " + parentEntry.getLeftChild().toString());
 			otherPage = (BTreeInternalPage) dirtypages.get(parentEntry.getLeftChild());
+			System.out.println("testLeft" + otherPage.getId().toString());
+			BTreeEntry next = otherPage.reverseIterator().next();
+			System.out.println("field " + field.toString() + " >= right: " + next.getKey());
+			System.out.println("otherPage: " + otherPage.getId().toString());
 			assertTrue(field.compare(Op.GREATER_THAN_OR_EQ, 
-					otherPage.reverseIterator().next().getKey()));
+					next.getKey()));
 		}
 		
 		int totalEntries = page.getNumEntries() + otherPage.getNumEntries();
+		System.out.println("totalEntries: " + totalEntries + " entriesPerPage: " + entriesPerPage);
 		assertEquals(entriesPerPage - 1, totalEntries);
 		assertTrue(entriesPerPage/2 == page.getNumEntries() || 
 				entriesPerPage/2 - 1 == page.getNumEntries());

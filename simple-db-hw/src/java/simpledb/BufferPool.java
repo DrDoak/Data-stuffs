@@ -243,7 +243,7 @@ public class BufferPool {
     private synchronized  void flushPage(PageId pid) throws IOException {
         // some code goes here
         // not necessary for lab1
-    	HeapFile hf = (HeapFile)Database.getCatalog().getDatabaseFile(pid.getTableId());
+    	DbFile hf = (DbFile)Database.getCatalog().getDatabaseFile(pid.getTableId());
     	Page page = pidToPage.get(pid);
     	hf.writePage(page);
     	page.markDirty(false, null);

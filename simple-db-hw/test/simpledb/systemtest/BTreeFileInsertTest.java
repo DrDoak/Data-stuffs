@@ -225,6 +225,7 @@ public class BTreeFileInsertTest extends SimpleDbTestBase {
 	@Test
 	public void testSplitInternalPage() throws Exception {
 		// For this test we will decrease the size of the Buffer Pool pages
+		System.out.println("--start test split internal page---");
     	BufferPool.setPageSize(1024);
 
 		// This should create a B+ tree with a packed second tier of internal pages
@@ -268,8 +269,12 @@ public class BTreeFileInsertTest extends SimpleDbTestBase {
 		fit.open();
 		while(fit.hasNext()) {
 			Tuple tup = fit.next();
-			if(prev != null)
+			if(prev != null){
+				if (!tup.getField(0).compare(Op.GREATER_THAN_OR_EQ, prev.getField(0))) {
+					System.out.println("tup: " + tup.getField(0).toString() + ">= prevTup: " + prev.getField(0));
+				}
 				assertTrue(tup.getField(0).compare(Op.GREATER_THAN_OR_EQ, prev.getField(0)));
+			}
 			prev = tup;
 			count++;
 		}

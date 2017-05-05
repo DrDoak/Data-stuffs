@@ -18,7 +18,7 @@ import simpledb.Predicate.Op;
  * @see simpledb.BTreeRootPtrPage#BTreeRootPtrPage
  * @author Becca Taft
  */
-public class BTreeFile implements DbFile {
+public class BTreeFileOld implements DbFile {
 
 	private final File f;
 	private final TupleDesc td;
@@ -287,44 +287,43 @@ public class BTreeFile implements DbFile {
 			//System.out.println("page: " + page.pid.getPageNumber() + " tup: " + ent.getRecordId().getPageId().getPageNumber());
 			if (curInd > (numTups/2)) {
 				if (!foundBreakPoint ){
-					/*if (field.compare(Op.GREATER_THAN_OR_EQ,ent.getField(keyField))) {
-						goalPage = newRightLeaf;
-					} else {
-						goalPage = page;
-					}*/
-					if (field.compare(Op.LESS_THAN_OR_EQ, ent.getField(keyField)))
-						goalPage = page;
-					else
-						goalPage = newRightLeaf;
-					
+					//System.out.println("split at: " + ent.getField(keyField).toString());
+					newRightLeaf.setRightSiblingId(page.getRightSiblingId());
+					page.setRightSiblingId(newRightLeaf.getId());
+					newRightLeaf.setLeftSiblingId(page.getId());
 					foundBreakPoint = true;
 					middleKey = ent;
+					if (field.compare(Op.GREATER_THAN_OR_EQ,ent.getField(keyField))) {
+						goalPage = newRightLeaf;
+						//System.out.println("goal is right");
+					} else {
+						goalPage = page;
+						//System.out.println("goal is Left");
+					}
 				}
 				page.deleteTuple(ent);
 				newRightLeaf.insertTuple(ent);
+				//System.out.println("Inserting to right: " + ent.getField(keyField).toString());
 				//System.out.println("Deleting entry: " + curInd);
 			}
 		}
-		
-		newRightLeaf.setRightSiblingId(page.getRightSiblingId());
-		page.setRightSiblingId(newRightLeaf.getId());
-		newRightLeaf.setLeftSiblingId(page.getId());
-		
 		BTreeInternalPage parentPage = getParentWithEmptySlots(tid, dirtypages, page.getParentId(), middleKey.getField(keyField));
+		//dirtypages.put(page.getId(), page);
+		//dirtypages.put(newRightLeaf.getId(),page);
+		//updateParentPointers(tid,dirtypages,(BTreeInternalPage)getPage(tid,dirtypages,page.getParentId(),Permissions.READ_WRITE));
 		newRightLeaf.setParentId(parentPage.getId());
 		page.setParentId(parentPage.getId());
-		
-		dirtypages.put(page.getId(), page);
-		dirtypages.put(newRightLeaf.getId(),newRightLeaf);
-		
-		BTreeEntry newParentEntry = new BTreeEntry(middleKey.getField(keyField), page.getId(), newRightLeaf.getId());
+		BTreeEntry newParentEntry = new BTreeEntry(middleKey.getField(keyField), page.getId(), goalPage.getId());
+		parentPage.insertEntry(newParentEntry);
 		newParentEntry.setLeftChild(page.getId());
 		newParentEntry.setRightChild(newRightLeaf.getId());
-		
-		parentPage.insertEntry(newParentEntry);
+	
 		parentPage.updateEntry(newParentEntry);
-		
+		dirtypages.put(page.getId(), page);
+		dirtypages.put(newRightLeaf.getId(),newRightLeaf);
 		dirtypages.put(parentPage.getId(), parentPage);
+		//System.out.println("left: " + page.getId().toString() + " right: " + newRightLeaf.getId().toString() + " goal: " + goalPage.getId().toString());
+		//System.out.println("right sibling" + goalPage.getRightSiblingId().toString());
 		return goalPage;		
 	}
 	
@@ -364,55 +363,50 @@ public class BTreeFile implements DbFile {
 		// should be inserted.
 		
 		BTreeInternalPage newRight = (BTreeInternalPage)getEmptyPage(tid, dirtypages,BTreePageId.INTERNAL);
+		//BTreeLeafPage leftLeaf = (BTreeLeafPage)getEmptyPage(tid, dirtypages,BTreePageId.LEAF);
 		int numTups = page.getNumEntries() + 1;
-		Iterator<BTreeEntry> iter = page.reverseIterator();
-		BTreeEntry[] indexArr = new BTreeEntry[numTups/2];
-		for (int i=indexArr.length-1; i>=0; i--){
-			indexArr[i] = iter.next();
-		}
-		BTreeEntry middleNode = indexArr[0];
-		for (int i=indexArr.length-1; i>0; i--){
-			page.deleteKeyAndRightChild(indexArr[i]);
-			newRight.insertEntry(indexArr[i]);
-		}
-		page.deleteKeyAndLeftChild(indexArr[0]);
-		//System.out.println("leftpage num "+ page.getNumEntries() + " rightpage num "+newRight.getNumEntries()+ " numTup is "+ (numTups-1));
-		
-		middleNode.setLeftChild(page.getId());
-		middleNode.setRightChild(newRight.getId());
-		
+		Iterator<BTreeEntry> iter = page.iterator();
+		int curInd = 0;
 		BTreeInternalPage goalPage = null;
+		boolean foundBreakPoint = false;
+		BTreeEntry middleNode = null;
+		while (iter.hasNext()) {
+			BTreeEntry ent = iter.next();
+			curInd ++;
+			if (curInd > (numTups/2)) {
+				if (!foundBreakPoint ){
+					if (field.compare(Op.GREATER_THAN_OR_EQ,ent.getKey())) {
+						System.out.println("goal is right");
+						goalPage = newRight;
+					} else {
+						System.out.println("goal is left");
+						goalPage = page;
+					}
+					middleNode = ent;
+					middleNode.setLeftChild(page.getId());
+					middleNode.setRightChild(newRight.getId());
+					foundBreakPoint = true;
+				} else {
+				newRight.insertEntry(ent);
+				//page.deleteKeyAndLeftChild(ent);
+				}
+			}
+		}
+		//dirtypages.put(page.getId(), page);
+		//dirtypages.put(newRightLeaf.getId(),page);
 		BTreeInternalPage parentPage = getParentWithEmptySlots(tid, dirtypages, page.getParentId(), middleNode.getKey());
-		
+		//System.out.println(parentPage.iterator().hasNext());
 		parentPage.insertEntry(middleNode);
-		
-		
-		newRight.setParentId(parentPage.getId());
-		page.setParentId(parentPage.getId());
-		parentPage.updateEntry(middleNode);
-		dirtypages.put(page.getId(), page);
-
-		dirtypages.put(newRight.getId(), newRight);
-		dirtypages.put(parentPage.getId(), parentPage);
-
-		//System.out.println("middlenode left child" + middleNode.getLeftChild().toString());
-//		BTreeEntry next = otherPage.reverseIterator().next();
-		//System.out.println("middlenode right child" + middleNode.getRightChild().toString());
+		BTreeEntry parentEntry = parentPage.iterator().next();
 		
 		updateParentPointers(tid,dirtypages,page);
 		updateParentPointers(tid,dirtypages,newRight);
-		if (field.compare(Op.LESS_THAN_OR_EQ,middleNode.getKey()))
-			goalPage = page;
-		else 
-			goalPage = newRight;
-		
-		System.out.println("-new split:-");
-		//System.out.println("middleNode is "+middleNode.getKey()+" field is "+field+" goal is left?"+(goalPage==page));
-		System.out.println("max of left is" + page.reverseIterator().next().getKey());
-		System.out.println("min of left is" + page.iterator().next().getKey());
-		System.out.println("max of right is" + newRight.reverseIterator().next().getKey());
-		System.out.println("min of right is" + newRight.iterator().next().getKey());
-        return goalPage;		
+		dirtypages.put(page.getId(), page);
+		dirtypages.put(newRight.getId(),newRight);
+		dirtypages.put(parentPage.getId(), parentPage);
+		//System.out.println("left: " + page.getId().toString() + " right: " + newRight.getId().toString());
+		//System.out.println("parent: " + parentPage.getId().toString() + " FEntry " + parentEntry.toString() + " Mentry: " + middleNode.toString());
+		return goalPage;		
 	}
 	
 	/**
