@@ -243,8 +243,14 @@ public class BTreeFileInsertTest extends SimpleDbTestBase {
 
 		// now insert some random tuples and make sure we can find them
 		Random rand = new Random();
+		Random randSeed = new Random();
+		long newSeed = rand.nextLong();
+		System.out.println("seed is:" + newSeed);
+		rand.setSeed(newSeed);
+		List<Integer> inserted = new ArrayList<Integer>();
 		for(int i = 0; i < 100; i++) {
 			int item = rand.nextInt(BTreeUtility.MAX_RAND_VALUE);
+			inserted.add(item);
 			Tuple t = BTreeUtility.getBTreeTuple(item, 2);
 			Database.getBufferPool().insertTuple(tid, bigFile.getId(), t);
 
@@ -272,6 +278,16 @@ public class BTreeFileInsertTest extends SimpleDbTestBase {
 			if(prev != null){
 				if (!tup.getField(0).compare(Op.GREATER_THAN_OR_EQ, prev.getField(0))) {
 					System.out.println("tup: " + tup.getField(0).toString() + ">= prevTup: " + prev.getField(0));
+					Iterator<Integer> it = inserted.iterator();
+					while (it.hasNext()) {
+						Integer next = it.next();
+						if (next.toString().equals(tup.getField(0).toString())) {
+							System.out.println("left tup was inserted");
+						}
+						if (next.toString().equals(prev.getField(0).toString())) {
+							System.out.println("right tup was inserted");
+						}
+					}
 				}
 				assertTrue(tup.getField(0).compare(Op.GREATER_THAN_OR_EQ, prev.getField(0)));
 			}
