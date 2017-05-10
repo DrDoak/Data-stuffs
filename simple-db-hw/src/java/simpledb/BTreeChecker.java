@@ -34,6 +34,10 @@ public class BTreeChecker {
         static SubtreeSummary checkAndMerge(SubtreeSummary accleft, SubtreeSummary right) {
             assert(accleft.depth == right.depth);
             assert(accleft.ptrRight.equals(right.leftmostId));
+            if (!accleft.rightmostId.equals(right.ptrLeft)) {
+            	System.out.println("rightMost of left: " + accleft.rightmostId.toString());
+            	System.out.println("ptrLeft of right:" + right.ptrLeft.toString());
+            }
             assert(accleft.rightmostId.equals(right.ptrLeft));
 
             SubtreeSummary ans = new SubtreeSummary();

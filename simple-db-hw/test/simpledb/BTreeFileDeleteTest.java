@@ -263,6 +263,11 @@ public class BTreeFileDeleteTest extends SimpleDbTestBase {
 		BTreeInternalPage sibling = BTreeUtility.createRandomInternalPage(siblingId, keyField, 
 				BTreePageId.LEAF, BTreeUtility.MAX_RAND_VALUE/2, BTreeUtility.MAX_RAND_VALUE, 4 + entriesPerPage/2);
 		
+		Iterator<BTreeEntry> leftIter = page.iterator();
+		/*while (leftIter.hasNext()) {
+			System.out.println("left: " + leftIter.next().toString());
+		}*/
+		
 		// create the parent page and the new entry
 		BTreePageId parentId = new BTreePageId(tableid, 3, BTreePageId.INTERNAL);
 		BTreeInternalPage parent = new BTreeInternalPage(parentId, BTreeInternalPage.createEmptyPageData(), keyField);
@@ -291,6 +296,8 @@ public class BTreeFileDeleteTest extends SimpleDbTestBase {
 		assertTrue(sibling.getNumEntries() == totalEntries/2 || sibling.getNumEntries() == totalEntries/2 + 1);
 		
 		// are the keys in the left page less than the keys in the right page?
+		//System.out.println( page.reverseIterator().next().getKey() + " <= " + 
+		//		sibling.iterator().next().getKey());
 		assertTrue(page.reverseIterator().next().getKey().compare(Op.LESS_THAN_OR_EQ, 
 				sibling.iterator().next().getKey()));
 		

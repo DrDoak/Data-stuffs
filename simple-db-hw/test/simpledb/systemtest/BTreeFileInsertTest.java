@@ -243,10 +243,10 @@ public class BTreeFileInsertTest extends SimpleDbTestBase {
 
 		// now insert some random tuples and make sure we can find them
 		Random rand = new Random();
-		Random randSeed = new Random();
-		long newSeed = rand.nextLong();
-		System.out.println("seed is:" + newSeed);
-		rand.setSeed(newSeed);
+		//Random randSeed = new Random();
+		//long newSeed = rand.nextLong();
+		//System.out.println("seed is:" + newSeed);
+		//rand.setSeed(newSeed);
 		List<Integer> inserted = new ArrayList<Integer>();
 		for(int i = 0; i < 100; i++) {
 			int item = rand.nextInt(BTreeUtility.MAX_RAND_VALUE);
