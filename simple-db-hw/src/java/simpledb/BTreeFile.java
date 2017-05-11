@@ -315,7 +315,9 @@ public class BTreeFile implements DbFile {
 		newRightLeaf.setRightSiblingId(page.getRightSiblingId());
 		page.setRightSiblingId(newRightLeaf.getId());
 		newRightLeaf.setLeftSiblingId(page.getId());
-		((BTreeLeafPage)getPage(tid,dirtypages,newRightLeaf.getRightSiblingId(),Permissions.READ_WRITE)).setLeftSiblingId(newRightLeaf.getId());
+		if (newRightLeaf.getRightSiblingId() != null) {
+			((BTreeLeafPage)getPage(tid,dirtypages,newRightLeaf.getRightSiblingId(),Permissions.READ_WRITE)).setLeftSiblingId(newRightLeaf.getId());
+		}
 		
 		BTreeInternalPage parentPage = getParentWithEmptySlots(tid, dirtypages, page.getParentId(), middleKey.getField(keyField));
 		newRightLeaf.setParentId(parentPage.getId());
@@ -379,7 +381,7 @@ public class BTreeFile implements DbFile {
 			indexArr[i] = iter.next();
 		}
 		BTreeEntry middleNode = iter.next();
-		for (int i=indexArr.length-1; i>=0; i--){
+		for (int i=indexArr.length-1; i>0; i--){
 			page.deleteKeyAndRightChild(indexArr[i]);
 			newRight.insertEntry(indexArr[i]);
 		}
@@ -425,6 +427,7 @@ public class BTreeFile implements DbFile {
 		//System.out.println("min of left is" + page.iterator().next().getKey());
 		//System.out.println("max of right is" + newRight.reverseIterator().next().getKey());
 		//System.out.println("min of right is" + newRight.iterator().next().getKey());
+		//System.out.println("left: " + page.getNumEntries() + " right: " + newRight.getNumEntries());
         return goalPage;		
 	}
 	

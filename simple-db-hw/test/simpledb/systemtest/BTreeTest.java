@@ -166,6 +166,7 @@ public class BTreeTest extends SimpleDbTestBase {
 		assertTrue(insertedTuples.size() > size);
 		size = insertedTuples.size();
 		// we should be reusing the deleted pages
+		System.out.println("numbf pages: " + bf.numPages());
 		assertTrue(bf.numPages() < numPages + 20);
 		
 		// kill all the threads

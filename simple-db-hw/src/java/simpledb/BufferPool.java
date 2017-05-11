@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.*;
 
 import simpledb.Catalog.Table;
@@ -30,7 +31,7 @@ public class BufferPool {
     constructor instead. */
     public static final int DEFAULT_PAGES = 50;
     
-	public Map<PageId,Page> pidToPage;
+	public ConcurrentHashMap<PageId,Page> pidToPage;
 	//public Map<TransactionId,Page> tidToPage;
 	public int maxPages;
 	Page testp;
@@ -41,7 +42,7 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
     	this.maxPages = numPages;
-    	pidToPage = new HashMap<PageId,Page>();
+    	pidToPage = new ConcurrentHashMap<PageId,Page>();
     	//tidToPage = new HashMap<TransactionId,Page>();
     }
     

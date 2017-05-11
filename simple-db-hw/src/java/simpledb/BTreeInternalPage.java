@@ -513,6 +513,12 @@ public class BTreeInternalPage extends BTreePage {
 		}
 
 		if(lessOrEqKey == -1) {
+			System.out.println("lessOrEqKey Error. Slots used:");
+			for (int i=0; i<numSlots; i++) {
+				if(isSlotUsed(i)) {
+					System.out.println(children[i]);
+				}
+			}
 			throw new DbException("attempt to insert invalid entry with left child " + 
 					e.getLeftChild().getPageNumber() + ", right child " +
 					e.getRightChild().getPageNumber() + " and key " + e.getKey() +
