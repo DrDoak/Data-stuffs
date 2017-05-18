@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.*;
 
 import simpledb.Catalog.Table;
@@ -30,7 +31,7 @@ public class BufferPool {
     constructor instead. */
     public static final int DEFAULT_PAGES = 50;
     
-	public Map<PageId,Page> pidToPage;
+	public ConcurrentHashMap<PageId,Page> pidToPage;
 	//public Map<TransactionId,Page> tidToPage;
 	public int maxPages;
 	Page testp;
@@ -41,7 +42,7 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
     	this.maxPages = numPages;
-    	pidToPage = new HashMap<PageId,Page>();
+    	pidToPage = new ConcurrentHashMap<PageId,Page>();
     	//tidToPage = new HashMap<TransactionId,Page>();
     }
     
@@ -160,7 +161,8 @@ public class BufferPool {
     public void insertTuple(TransactionId tid, int tableId, Tuple t)
         throws DbException, IOException, TransactionAbortedException {
         // some code goes here
-        HeapFile mFile = (HeapFile)Database.getCatalog().getDatabaseFile(tableId);
+        //HeapFile mFile = (HeapFile)Database.getCatalog().getDatabaseFile(tableId);
+        DbFile mFile = (DbFile)Database.getCatalog().getDatabaseFile(tableId);
         ArrayList<Page> modifiledPages = mFile.insertTuple(tid, t);
         for (Page mp: modifiledPages) {
             mp.markDirty(true, tid);
@@ -185,7 +187,7 @@ public class BufferPool {
     public  void deleteTuple(TransactionId tid, Tuple t)
         throws DbException, IOException, TransactionAbortedException {
             int mTableId = t.getRecordId().getPageId().getTableId();
-            HeapFile mFile = (HeapFile)Database.getCatalog().getDatabaseFile(mTableId);
+            DbFile mFile = (DbFile)Database.getCatalog().getDatabaseFile(mTableId);
             ArrayList<Page> modifiledPages = mFile.deleteTuple(tid,t);
             for (Page mp: modifiledPages) {
                 mp.markDirty(true, tid);
@@ -223,10 +225,14 @@ public class BufferPool {
         // not necessary for lab1
     	
 //    	Page p = pidToPage.get(pid);
-    	HeapFile hf = (HeapFile)Database.getCatalog().getDatabaseFile(pid.getTableId());
+//    	DbFile hf = (DbFile)Database.getCatalog().getDatabaseFile(pid.getTableId());
+    	if (Database.getCatalog().getDatabaseFile(pid.getTableId()).getClass() == HeapFile.class)
+    	{
+    		HeapFile hf = (HeapFile)Database.getCatalog().getDatabaseFile(pid.getTableId());
+        	hf.mPages.remove(pid);
+    	}
 //    	Page page = pidToPage.get(pid);
 //    	hf.writePage(page);
-    	hf.mPages.remove(pid);
     	pidToPage.remove(pid);
 //    	pidToPage = new HashMap<PageId,Page>();
     }
@@ -238,7 +244,7 @@ public class BufferPool {
     private synchronized  void flushPage(PageId pid) throws IOException {
         // some code goes here
         // not necessary for lab1
-    	HeapFile hf = (HeapFile)Database.getCatalog().getDatabaseFile(pid.getTableId());
+    	DbFile hf = (DbFile)Database.getCatalog().getDatabaseFile(pid.getTableId());
     	Page page = pidToPage.get(pid);
     	hf.writePage(page);
     	page.markDirty(false, null);

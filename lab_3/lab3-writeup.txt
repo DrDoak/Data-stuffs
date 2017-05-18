@@ -1,0 +1,33 @@
+﻿Writeup: LuoLei Zhao
+Collaborator: Haylay “Yue” Hu
+
+
+Problem Set 2 Writeup
+
+
+Design Decisions
+For this lab, we followed the procedures outlined in the assignment very closely. For any method that was marked as “insert code here” in comments, we filled out the sections with what appeared to be the most reasonable entry into the section. Our design decisions were aligned very closely with the write up, and we tried to follow the search, split, and merge procedures as closely as possible.
+
+
+Changes
+
+
+In general, there were minimal changes made to the overall structure of the code, and the hierarchy of classes remained identical to the API beforehand. The main changes that were made were implemented as encapsulated elements of individual classes and do not affect the interactions across different classes. 
+
+
+All changes were made to BTree.java exclusively. During debugging, some print statements were added to other files, such as the testFiles and BTreeInternal.java. However, these print statements did not directly affect any of the code processing and were removed/commented before submission.
+
+
+We did need to change a few functions in the Bufferpool file from the last project. In that file, we had assumed that we were only dealing with HeapFiles, which we used up to that point. However, for this assignment, we generalized the functions to allow the use of the more general DbFile instead of exclusively HeapFiles.
+
+
+Length of Lab/Difficulties
+
+
+This lab took far longer than all previous labs. Our group likely spent over 20 hours working on this lab across multiple days. We did not find the concepts of the lab to be particularly difficult to understand. However, the process involved many small steps and processes that were prone to errors. While the provided utility functions in BTree.java did help significantly in reducing the need to focus on small details, I felt that the lab became challenging due to the difficulty interpreting error messages.
+
+
+The main challenge involved finding out what various error messages meant and what could have caused the errors. Often, we would fail an assertion without any indication of what that assertion means, or any immediate idea of what may be causing the error. In addition, a common error encountered a was the “attempt to insert invalid entry” error, which is not helpful, as it could mean almost anything. In addition, I felt that the error messages in early parts of the lab should have been more strict. When we reached later portions of the lab, there were still errors in previous portions that appear to not have been caught by earlier tests and required significant debugging to find the solution. By the time we reached the final test: BTreeFile, an error could encompass any section of any function, and thus was extremely difficult and time consuming to debug.
+
+
+However, after it was determined on piazza that the BTreeFile test was not required, we were able to finish all required parts and have no missing components.
