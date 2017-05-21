@@ -76,6 +76,13 @@ public class TableStats {
      *            The cost per page of IO. This doesn't differentiate between
      *            sequential-scan IO and disk seeks.
      */
+    DbFile mFile;
+    int costPerPage;
+    int totalTuples;
+    int numFields;
+    ConcurrentHashMap<Integer,IntHistogram> intFields;
+    ConcurrentHashMap<Integer,StringHistogram> strFields;
+    
     public TableStats(int tableid, int ioCostPerPage) {
         // For this function, you'll have to get the
         // DbFile for the table in question,
@@ -85,6 +92,74 @@ public class TableStats {
         // necessarily have to (for example) do everything
         // in a single scan of the table.
         // some code goes here
+    	mFile = Database.getCatalog().getDatabaseFile(tableid);
+    	costPerPage = ioCostPerPage;
+    	intFields = new ConcurrentHashMap<Integer,IntHistogram> ();
+    	strFields = new ConcurrentHashMap<Integer,StringHistogram>(); 
+    	
+		TransactionId tid = new TransactionId();
+		SeqScan f = new SeqScan(tid,tableid);
+		boolean firstTuple = true;
+		numFields = 0;
+		totalTuples = 0;
+		int[] mins = null;
+		int[] maxes = null;
+		TupleDesc desc = null;
+		//Find min and max of each field
+		try {
+		    // and run it
+		    f.open();
+		    while (f.hasNext()) {
+		        Tuple tup = f.next();
+		        if (firstTuple){
+		        	desc = tup.getTupleDesc();
+		        	numFields = desc.numFields();
+		        	mins = new int[numFields];
+		        	maxes = new int[numFields];
+		        	firstTuple = false;
+		        }
+		        for (int i = 0; i < numFields;i ++) {
+		        	if (desc.getFieldType(i) == Type.INT_TYPE) {
+		        		int intF = ((IntField)tup.getField(i)).getValue();
+		        		if (intF< mins[i]) {
+		        			mins[i] = intF;
+		        		} else if (intF > maxes[i]) {
+		        			maxes[i] = intF;
+		        		}
+		        	}
+		        }
+		    }
+		    f.rewind();
+		} catch (Exception e) {
+		    System.out.println ("Exception : " + e);
+		}
+		for (int i = 0; i < numFields;i ++) {
+			if (desc.getFieldType(i) == Type.INT_TYPE) {
+				IntHistogram iH = new IntHistogram( NUM_HIST_BINS,mins[i],maxes[i] );
+				intFields.put(i, iH);
+			}else if (desc.getFieldType(i) == Type.STRING_TYPE) {
+				StringHistogram sH = new StringHistogram(NUM_HIST_BINS);
+				strFields.put(i, sH);
+			}
+		}
+		
+		try {
+		    while (f.hasNext()) {
+		        Tuple tup = f.next();
+		        totalTuples++;
+		        for (int i = 0; i < numFields;i ++) {
+					if (desc.getFieldType(i) == Type.INT_TYPE) {
+						intFields.get(i).addValue(((IntField)tup.getField(i)).getValue());
+					}else if (desc.getFieldType(i) == Type.STRING_TYPE) {
+						strFields.get(i).addValue(((StringField)tup.getField(i)).getValue());
+					}
+				}
+		    }
+		    f.close();
+		    Database.getBufferPool().transactionComplete(tid);
+		} catch (Exception e) {
+		    System.out.println ("Exception : " + e);
+		}
     }
 
     /**
@@ -101,7 +176,7 @@ public class TableStats {
      */
     public double estimateScanCost() {
         // some code goes here
-        return 0;
+    	return ((HeapFile)mFile).numPages() * costPerPage;
     }
 
     /**
@@ -115,7 +190,7 @@ public class TableStats {
      */
     public int estimateTableCardinality(double selectivityFactor) {
         // some code goes here
-        return 0;
+        return (int)(totalTuples * selectivityFactor);
     }
 
     /**
@@ -130,7 +205,11 @@ public class TableStats {
      * */
     public double avgSelectivity(int field, Predicate.Op op) {
         // some code goes here
-        return 1.0;
+    	if (intFields.containsKey(field)) {
+    		return intFields.get(field).avgSelectivity();
+    	} else {
+    		return strFields.get(field).avgSelectivity();
+    	}
     }
 
     /**
@@ -147,8 +226,11 @@ public class TableStats {
      *         predicate
      */
     public double estimateSelectivity(int field, Predicate.Op op, Field constant) {
-        // some code goes here
-        return 1.0;
+    	if (intFields.containsKey(field)) {
+    		return intFields.get(field).estimateSelectivity(op, ((IntField)constant).getValue());
+    	} else {
+    		return strFields.get(field).estimateSelectivity(op, ((StringField)constant).getValue());
+    	}
     }
 
     /**
@@ -156,7 +238,7 @@ public class TableStats {
      * */
     public int totalTuples() {
         // some code goes here
-        return 0;
+        return totalTuples;
     }
 
 }
