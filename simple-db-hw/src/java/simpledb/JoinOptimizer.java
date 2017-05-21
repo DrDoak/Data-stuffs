@@ -158,14 +158,21 @@ public class JoinOptimizer {
             Map<String, Integer> tableAliasToId) {
         int card = 1;
         // some code goes here
-        card = card1 * card2;
-        if (t1pkey) {
-        	card = Math.min(card2, card);
+        if (joinOp == Predicate.Op.EQUALS) {
+//	        card = card1 * card2;
+        	card = Math.max(card1, card2);
+	        if (t1pkey) {
+	        	card = Math.min(card2, card);
+	        }
+	        if (t2pkey) {
+	        	card = Math.min(card1, card);
+	        }
+        } else if (joinOp == Predicate.Op.NOT_EQUALS) {
+        	card = card1 * card2;
+        } else {
+        	card = (int)(card1 * card2 * 0.7);
         }
-        if (t2pkey) {
-        	card = Math.min(card1, card);
-        }
-        
+	        
         return card <= 0 ? 1 : card;
     }
 
