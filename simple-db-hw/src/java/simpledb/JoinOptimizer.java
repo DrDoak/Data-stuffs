@@ -230,7 +230,47 @@ public class JoinOptimizer {
 
         // some code goes here
         //Replace the following
-        return joins;
+    	if (explain) {
+    	}
+//    	1. j = set of join nodes
+//		2. for (i in 1...|j|):
+//		3.     for s in {all length i subsets of j}
+//		4.       bestPlan = {}
+//		5.       for s' in {all length i-1 subsets of s}
+//		6.            subplan = optjoin(s')
+//		7.            plan = best way to join (s-s') to subplan
+//		8.            if (cost(plan) < cost(bestPlan))
+//		9.               bestPlan = plan
+//		10.      optjoin(s) = bestPlan
+//		11. return optjoin(j)
+    	int jCard = joins.size();
+    	PlanCache pc = new PlanCache();
+
+    	//Vector<LogicalJoinNode> finalAns = new Vector<LogicalJoinNode>();
+    	for (int i = 1;i <= jCard;i++){
+    		Set<Set<LogicalJoinNode>> subsets = enumerateSubsets(joins,i);
+    		Iterator<Set<LogicalJoinNode>> iter = subsets.iterator();
+    		
+    		
+    		while (iter.hasNext()) {
+    			double bestCostSoFar = Double.MAX_VALUE;
+        		CostCard bestcc = null;
+    			Set<LogicalJoinNode> innerSet = iter.next();
+    			
+    			for (LogicalJoinNode curr : innerSet) {
+    				CostCard cc = computeCostAndCardOfSubplan(stats,filterSelectivities,curr,innerSet,bestCostSoFar,pc);
+    				if (cc != null && cc.cost < bestCostSoFar) {
+    					bestcc = cc;
+    					bestCostSoFar = cc.cost;
+    				}
+    			}
+    			if (bestcc != null) {
+    				pc.addPlan(innerSet, bestcc.cost, bestcc.card, bestcc.plan);	
+    			}
+    		}
+    	}
+    	//printJoins(joins, pc, stats,)
+        return pc.getOrder(new HashSet<LogicalJoinNode>(joins));
     }
 
     // ===================== Private Methods =================================
