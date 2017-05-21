@@ -135,7 +135,7 @@ public class TableStats {
 		}
 		for (int i = 0; i < numFields;i ++) {
 			if (desc.getFieldType(i) == Type.INT_TYPE) {
-				IntHistogram iH = new IntHistogram( NUM_HIST_BINS,mins[i],maxes[i] );
+				IntHistogram iH = new IntHistogram( Math.min((maxes[i] - mins[i]),NUM_HIST_BINS),mins[i],maxes[i] );
 				intFields.put(i, iH);
 			}else if (desc.getFieldType(i) == Type.STRING_TYPE) {
 				StringHistogram sH = new StringHistogram(NUM_HIST_BINS);
@@ -227,7 +227,7 @@ public class TableStats {
      */
     public double estimateSelectivity(int field, Predicate.Op op, Field constant) {
     	if (intFields.containsKey(field)) {
-    		return intFields.get(field).estimateSelectivity(op, ((IntField)constant).getValue());
+    		return Math.min(1.0, Math.max(0.0f, intFields.get(field).estimateSelectivity(op, ((IntField)constant).getValue())));
     	} else {
     		return strFields.get(field).estimateSelectivity(op, ((StringField)constant).getValue());
     	}

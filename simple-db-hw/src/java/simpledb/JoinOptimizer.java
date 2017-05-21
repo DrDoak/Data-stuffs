@@ -111,7 +111,8 @@ public class JoinOptimizer {
             // HINT: You may need to use the variable "j" if you implemented
             // a join algorithm that's more complicated than a basic
             // nested-loops join.
-            return -1.0;
+        	
+            return cost1 + card1 * cost2 + card1 * card2;
         }
     }
 
@@ -157,6 +158,14 @@ public class JoinOptimizer {
             Map<String, Integer> tableAliasToId) {
         int card = 1;
         // some code goes here
+        card = card1 * card2;
+        if (t1pkey) {
+        	card = Math.min(card2, card);
+        }
+        if (t2pkey) {
+        	card = Math.min(card1, card);
+        }
+        
         return card <= 0 ? 1 : card;
     }
 

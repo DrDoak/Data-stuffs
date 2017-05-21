@@ -106,31 +106,31 @@ public class IntHistogram {
 		if (v < rightc && v >= leftc){
 			switch(op){
 			case GREATER_THAN:
-				validEntries += (rightc - v)/interval * mBuckets[i];
+				validEntries = (rightc - v)/interval * mBuckets[i];
 				for (int j = i + 1 ; j < mBuckets.length; j++){
 					validEntries += mBuckets[j];
 				}
 				return validEntries/totalEntries;
 			case GREATER_THAN_OR_EQ:
-				validEntries += (rightc - v + 1)/interval * mBuckets[i];
+				validEntries = (rightc - v + 1)/interval * mBuckets[i];
 				for (int j = i + 1 ; j < mBuckets.length; j++){
 					validEntries += mBuckets[j];
 				}
 				return validEntries/totalEntries;
 			case LESS_THAN:
-				validEntries += (v - leftc )/interval * mBuckets[i];
+				validEntries = (v - leftc )/interval * mBuckets[i];
 				for (int j = 0 ; j < i; j++){
 					validEntries += mBuckets[j];
 				}
 				return validEntries/totalEntries;
 			case LESS_THAN_OR_EQ:
-				validEntries += (v - leftc + 1)/interval * mBuckets[i];
+				validEntries = (v - leftc + 1)/interval * mBuckets[i];
 				for (int j = 0 ; j < i; j++){
 					validEntries += mBuckets[j];
 				}
 				return validEntries/totalEntries;
 			case EQUALS:
-				validEntries += 1/interval * mBuckets[i];
+				validEntries = 1/interval * mBuckets[i];
 				return validEntries/totalEntries;
 			case NOT_EQUALS:
 				validEntries = totalEntries - ( 1/interval * mBuckets[i]);
@@ -153,7 +153,6 @@ public class IntHistogram {
     public double avgSelectivity()
     {
     	double sum = 0.0;
-		System.out.println("selectivity calculations");
 		for (int c = mMin; c < mMax; c++) {
 			sum += estimateSelectivity(Op.EQUALS, c);
 		}
